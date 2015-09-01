@@ -15,31 +15,28 @@ print abs((fin-ini)*1000)
 '''
 ESTE SCRIPT OBTENDRÁ TODAS LOS ARTICULOS DE UNA PAGINA WEB DE PERIODICOS LA CUAL CUMPLA CON PATRONES DE SCRABING,
 
----VERSION - EL TIEMPO
+---VERSION - Fiscalia.gov.co
 Se deeben tener en cuenta las siguientes consideraciones:
-La pagina del tiempo parece vigilar los accesos, cancelando el ingreso de la ip cuando son demasiado frecuentes
-A nivel de articulo el tiempo presenta diferentes tipos de codificacion de sus articulos, por ej. desde que usa html ya no imprime tildes
-A nivel de articulo el tiempo presenta diferentes patrones de inicio y final a partir aprox de marzo 2014, el cambio es difuso.
-A nivel de articulo el patron de inicio y final parece mantenerse desde el inicio del periodico hasta el 2013
+
 '''
 
 #'''# NIVEL LISTAS: OBTENER TODAS LAS URL DE LAS NOTICIAS
-topeInicio=297
-topePag= 0
+topeInicio=1
+topePag= 1
 print "Se procesarán", topePag, "páginas..."
 todasUrls = []
 todasPagUrls = []
 urlsCorruptas = ["ecbloguer"] # ecbloguer es un blog externo de elcolombiano.com
 
 
-patronInicio= "                <time"
-patronFin="<h3>"
-patronInicio2="href=\"http:"
-patronFin2="\">"
+patronInicio= '<div class="big">'
+patronFin="</div> <!-- /big -->"
+patronInicio2='<a class="titulo-noticia-home" href="'
+patronFin2='"'
 
-for i in range(topeInicio,topeInicio+topePag+1):
+for i in range(topeInicio,topeInicio+topePag):
     print "Leyendo página", i,"..."
-    url = "http://www.eltiempo.com/archivo/buscar?q=terrorismo&producto=eltiempo&orden=reciente&pagina="+i.__str__()
+    url = "http://www.fiscalia.gov.co/colombia/todas-las-noticias/page/"+i.__str__()
     print "listado", url
     usock = urlopen(url)
     data = usock.read()
@@ -57,6 +54,7 @@ for i in range(topeInicio,topeInicio+topePag+1):
             print "--DESCARTADO-- Se encontro:", inapropiado
             continue
         url = url[len(patronInicio2):len(patronFin2)*-1]
+        print "mi url", url
         url= "http:"+url
         todasUrls.append(url)
         todasPagUrls.append(i)
@@ -67,7 +65,7 @@ for i in range(topeInicio,topeInicio+topePag+1):
 
 
 
-#exit()
+
 
 
 # NIVEL DE ARTICULO: OBTENER EL PARRAFO DE LA NOTICIA DEL ARTICULO

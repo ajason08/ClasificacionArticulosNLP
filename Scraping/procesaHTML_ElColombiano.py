@@ -13,13 +13,14 @@ print abs((fin-ini)*1000)
 '''
 
 '''
-ESTE SCRIPT OBTENDRÁ TODAS LOS ARTICULOS DE UNA PAGINA WEB DE PERIODICOS LA CUAL CUMPLA CON PATRONES DE SCRABING,
+ESTE SCRIPT OBTENDRÁ TODAS LOS ARTICULOS DE UNA PAGINA WEB DE PERIODICOS LA CUAL CUMPLA CON PATRONES DE SCRAPING,
 SE MUESTRA UN EJEMPLO CON LA PAGINA WEB EL_COLOMBIANO_.COM.
 SOLO ES NECESARIO ESPECIFICAR LA URL Y EL TOPE (PAGINA MAX A LA QUE SE DESEA LLEGAR)
 '''
 
 #'''# NIVEL LISTAS: OBTENER TODAS LAS URL DE LAS NOTICIAS
-topePag= 3
+topeInicio=1
+topePag= 500
 
 todasUrls = []
 todasPagUrls = []
@@ -29,9 +30,9 @@ tampin= len(patronInicio)
 urlsCorruptas = ["ecbloguer"] # ecbloguer es un blog externo de elcolombiano.com
 
 print "Se procesarán", topePag, "páginas..."
-for i in range(1,topePag+1):
+for i in range(topeInicio,topeInicio+topePag+1):
     print "Leyendo página", i,"..."
-    url = "http://www.elcolombiano.com/busqueda/-/search/violencia/false/false/19150717/20150717/date/true/true/0/0/meta/0/0/0/"+i.__str__()
+    url = "http://www.elcolombiano.com/busqueda/-/search/que/false/false/19150825/20150825/date/true/true/sectionName%3A*e781a51c-2d7b-4098-8ad5-d5a42f425e21*/0/meta/0/0/0/"+i.__str__()
     usock = urlopen(url)
     data = usock.read()
     usock.close()
@@ -62,7 +63,7 @@ outputArt=open(nombreArchivo,"w")
 outputArt.close()
 outputArt = open(nombreArchivo,"a")
 
-articulosCorruptos=["@","&nbsp"] #tiene hiperlinks de twiter o errores en el patron
+terminosInapropiados=["@","&nbsp"] #tiene hiperlinks de twiter o errores en el patron
 patronIn = "<!-- cxenseparse_start -->"
 patronFin = "</p> </div> </article>"
 j=1
@@ -80,10 +81,14 @@ for url in todasUrls:
     print "--------ARTICULO NUEVO ----------", j, "pagina", todasPagUrls[j-1]
     print url
     j=j+1
-    x = getOcurrenciasExpresiones(articulo,articulosCorruptos)
-    if x <> []:
-        print "--DESCARTADO--"
-        continue
+
+    # accion inicial de limpieza: cortar si encontro codigo en medio del patron.
+    articuloVector = str(articulo).split()
+    indiceTerminosInapropiados = getIndicesPalabrasClavesOR(articuloVector,terminosInapropiados)
+    if indiceTerminosInapropiados <> []:
+        print "--RECORTADO-- En este articulo encontro uno de los sgts terminos inapropiados", indiceTerminosInapropiados
+        articuloVector = articuloVector[0:min(indiceTerminosInapropiados)]
+
 
     # limpio (whiteSpaces y simbolos) y almaceno el articulo
     articulo = re.sub('[\t]+' , ' ', articulo).strip()

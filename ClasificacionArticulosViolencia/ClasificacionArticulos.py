@@ -5,7 +5,7 @@ from ServiciosTecnicos.GestorEntradasSalidas import *
 def getArticulos(vector, bandera):
     # intentarlo con split
     keyword =[bandera]
-    indices = indicesPalabrasClavesOR(vector, keyword)
+    indices = getIndicesPalabrasClavesOR(vector, keyword)
     inicial=0
     articulos=[]
     for i in indices:

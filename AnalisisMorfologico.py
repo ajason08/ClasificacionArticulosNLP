@@ -65,18 +65,16 @@ def getUniqsConFrecuencias(vector):
             cantidad.append(1)
     return palabrasUniq, cantidad
 
-def indicesPalabrasClavesOR(vector, keywords):
+def getIndicesPalabrasClavesOR(vector, keywords):
     #obtiene los indices donde se encuentran ciertas palabras claves en un vector. El orden de las palabras no es secuencial
     indices= []
-
     for i in range(len(vector)):
         for j in range(len(keywords)):
-
             if vector[i]==keywords[j]:
                 indices.append(i)
     return indices
 
-def indicesPalabrasClavesAND(vector, keywords):
+def getIndicesPalabrasClavesAND(vector, keywords):
      #obtiene los indices donde se encuentran ciertas palabras claves en un vector. El orden de las palabras es secuencial
     indices= []
     for i in range(len(vector)):
@@ -97,7 +95,7 @@ def frecuenciasRelativasPonderadas(parrafoVector,keywords, pesos, frecuenciasSig
     # el tamaño del vencidario esta dado por el tamaño del vector de pesos, ademas, los vecindarios no van mas alla
     # de donde inicia o acaba el texto (obviamente) y tampoco mas alla de puntos seguidos o finales, esto para precisar el contexto semantico
 
-    pivotes = indicesPalabrasClavesOR(parrafoVector,keywords)                                                   #capturo los indices de ocurrencias
+    pivotes = getIndicesPalabrasClavesOR(parrafoVector,keywords)                                                   #capturo los indices de ocurrencias
     palabrasUniq = []                                                               # define una lista de palabras sin repeticion
     cantidad = []
     valor = []
@@ -185,7 +183,7 @@ def eliminaStopWords(categoriasEliminar, categoriasG, palabras, lemas):
 def getTodosContextos(textoVector, palabraClaves, signoInicial, signoFinal):
     # Dado un parrafo en formato vector, y una lista de palabras de interes, obtiene el vencindario para cada
     # palabra de interes, dicho vecindario va desde un signo inicial hasta un signo final
-    indices = indicesPalabrasClavesOR(textoVector, palabraClaves)
+    indices = getIndicesPalabrasClavesOR(textoVector, palabraClaves)
 
     todosContextosPalabraClave =[]
     for i in indices:
@@ -213,7 +211,7 @@ def getTodosContextosPorNnomios(textoVector, palabraClaves, lemas, signoInicial,
 
     print "\n N-nomios: " + palabraClaves.__str__()
 
-    indices = indicesPalabrasClavesAND(textoVector, palabraClaves)
+    indices = getIndicesPalabrasClavesAND(textoVector, palabraClaves)
     todosContextosPalabraClave =[]
     for i in indices:
         indiceInicial =0
@@ -256,7 +254,7 @@ def modificarTaggedTNT(terminosAgregar, categoriasAgregar, lemasAgregar, termino
     # los terminos no son retornados puesto que estos no cambian
 
     for j in range(len(terminosAgregar)):
-        indices = indicesPalabrasClavesOR(terminos,[terminosAgregar[j]])
+        indices = getIndicesPalabrasClavesOR(terminos,[terminosAgregar[j]])
         for i in indices:
             categorias[i]= categoriasAgregar[j]
             lemas[i]=lemasAgregar[j]

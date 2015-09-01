@@ -19,6 +19,14 @@ def ordenarTablaFrecuencias(palabras, cantidad, valor, columna):
     x = sorted(matriz, key=itemgetter(columna))
     return x
 
+
+articulosCorruptos=["desde", "la"]
+s ="Una de las noticias en la recta final de la campaña ha sido su repunte en las últimas encuestas. ¿Qué hizo para dar ese salto? Yo vengo haciendo un trabajo desde hace más de año y medio basado en el contacto permanente con la ciudadanía para saber cuáles con sus problemas y la visión sobre las dificultades de las regiones. Eso me ".split()
+a = getIndicesPalabrasClavesOR(s,articulosCorruptos)
+print a
+exit()
+
+
 archivoExcel = "clasificacionExpresiones.xls"
 expresionesConflictoInterno =  cargarColumnaEnLista(archivoExcel,0,0,1,0)
 expresionesMetropolitana = cargarColumnaEnLista(archivoExcel,0,1,1,0)
@@ -31,7 +39,7 @@ print lista
 for i in range(len(categ)):
     print categ[i], cant[i]
 '''
-exit()
+
 
 
 exit()
