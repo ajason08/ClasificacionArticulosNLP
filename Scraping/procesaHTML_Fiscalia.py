@@ -43,7 +43,7 @@ for i in range(topeInicio,topeInicio+topePag):
     usock.close()
     #recorto la seccion donde estan las url
     init = str(data).index(patronInicio)
-    data = data[init:init+10000]
+    data = data[init:init+15000]
 
     listaE= getOcurrenciasExpresion(data,patronInicio2,patronFin2)
     #obtengo urls limpias
@@ -54,8 +54,8 @@ for i in range(topeInicio,topeInicio+topePag):
             print "--DESCARTADO-- Se encontro:", inapropiado
             continue
         url = url[len(patronInicio2):len(patronFin2)*-1]
-        print "mi url", url
-        url= "http:"+url
+        #print "mi url", url
+        #url= "http:"+url
         todasUrls.append(url)
         todasPagUrls.append(i)
         #print url, "\n"*2
@@ -83,10 +83,8 @@ outputArt.close()   # Reinicio txt
 outputArt = open(nombreArchivo,"a")
 
 terminosInapropiados=["@", "{", "var"] #tiene hiperlinks de twiter o errores en el patron
-patronIn = "<p itemprop='articleBody'>"
-patronFin = '<footer class="footer-article">'
-patronIn2 = '<div class="columna_articulo">'
-patronFin2 = '<div class="compartirTop">'
+patronIn = '<div id="content">'
+patronFin = '<p>&nbsp;</p>'
 j=1
 cantidadArt=0
 for url in todasUrls:
@@ -105,12 +103,8 @@ for url in todasUrls:
 
     # Si el primer patron falla intento con el segundo
     if len(articulo)<2:
-        indiceIn=data.find(patronIn2)
-        indiceFin= data.find(patronFin2)
-        articulo=data[indiceIn:indiceFin]
-        if len(articulo)<2:
-            print "--DESCARTADO-- No se encontro el articulo"
-            continue
+        print "--DESCARTADO-- No se encontro el articulo"
+        continue
 
     # accion inicial de limpieza: cortar si encontro codigo en medio del patron.
     articuloVector = str(articulo).split()
@@ -136,31 +130,7 @@ for url in todasUrls:
 
     articulo = articulo.replace("—","")
     articulo = articulo.replace("#","")
-    #limpio codificacion html
-    articulo = articulo.replace("&aacute;","á")
-    articulo = articulo.replace("&eacute;","é")
-    articulo = articulo.replace("&iacute;","í")
-    articulo = articulo.replace("&oacute;","ó")
-    articulo = articulo.replace("&uacute;","ú")
-    articulo = articulo.replace("&ntilde;","ñ")
-    articulo = articulo.replace("&uuml;","ü")
-    articulo = articulo.replace("&Aacute;","Á")
-    articulo = articulo.replace("&Eacute;","É")
-    articulo = articulo.replace("&Iacute;","Í")
-    articulo = articulo.replace("&Oacute;","Ó")
-    articulo = articulo.replace("&Uacute;","Ú")
-    articulo = articulo.replace("&Ntilde;","Ñ")
-    articulo = articulo.replace("&Uuml;","Ü")
-    articulo = articulo.replace("&iquest;","¿")
-    articulo = articulo.replace("&nbsp;"," ")
-    articulo = articulo.replace("&ldquo;"," ' ")
-    articulo = articulo.replace("&rdquo;"," ' ")
-    articulo = articulo.replace("&lsquo;"," ' ")
-    articulo = articulo.replace("&rsquo;"," ' ")
-    articulo = articulo.replace("&iexcl;"," ¡ ")
-    articulo = articulo.replace("&deg;"," ° ")
-    articulo = articulo.replace("&ndash;"," - ")
-    articulo = articulo.replace("&ordf;"," ")
+
 
 
     articulo = articulo.replace(chr(9),"")      # tabulador normal
