@@ -4,7 +4,7 @@ from AnalisisLinguistico.AnalisisMorfologico import *
 from ServiciosTecnicos.GestorEntradasSalidas import *
 
 archivoNombres = "Names.xls"
-nombres=   cargarColumnaEnLista(archivoNombres,0,0,1,3500)
+nombres=   cargarColumnaEnLista(archivoNombres,0,0,1,3500) 
 apellidos= cargarColumnaEnLista(archivoNombres,1,0,1,3500)
 nombresApellidos =nombres+apellidos
 
