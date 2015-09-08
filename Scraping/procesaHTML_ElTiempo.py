@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from urllib import *
-import re
-from AnalisisMorfologico import *
-import timeit
+
+from AnalisisLinguistico.AnalisisMorfologico import *
 
 '''
 ini = timeit.timeit()

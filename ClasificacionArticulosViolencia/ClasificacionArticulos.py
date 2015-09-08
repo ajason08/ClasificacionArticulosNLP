@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from AnalisisMorfologico import *
+from AnalisisLinguistico.AnalisisMorfologico import *
 from ServiciosTecnicos.GestorEntradasSalidas import *
 def getArticulos(vector, bandera):
     # intentarlo con split
@@ -25,7 +25,7 @@ def maximo(lista):
 
 
 # cargo palabras, categorias y lemas sin stopwords
-cantidadPaginas = 9
+cantidadPaginas = 5
 archivoTxt =str(cantidadPaginas)+'Tag.txt'
 palabrasN, categoriasN, lemasN = cargarArchivoTaggerTNT(archivoTxt)
 

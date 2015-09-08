@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from urllib import *
-import re
-from AnalisisMorfologico import *
-import timeit
+
+from AnalisisLinguistico.AnalisisMorfologico import *
 
 '''
 ini = timeit.timeit()
@@ -21,8 +20,8 @@ Se deeben tener en cuenta las siguientes consideraciones:
 '''
 
 #'''# NIVEL LISTAS: OBTENER TODAS LAS URL DE LAS NOTICIAS
-topeInicio=1
-topePag= 1
+topeInicio=1000
+topePag=500
 print "Se procesarán", topePag, "páginas..."
 todasUrls = []
 todasPagUrls = []

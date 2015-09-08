@@ -1,10 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import re
-from operator import itemgetter
-from AnalisisMorfologico import *
 import xlwt
+
+from AnalisisLinguistico.AnalisisMorfologico import *
+
 
 #from operator import itemgetter, attrgetter
 
