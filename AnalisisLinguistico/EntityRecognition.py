@@ -3,73 +3,147 @@
 from AnalisisLinguistico.AnalisisMorfologico import *
 from ServiciosTecnicos.GestorEntradasSalidas import *
 
+def obtenerEntidadesFuerzaBruta(texto, entidadesConocidas):
+    # identifica las entidades en un texto* (texto es un vector de textos) basandose en
+    # una lista de entidades conocidas. comprueba en cada palabra si corresponde a una entidad.
+
+    # limitaciones:
+    # no reconoce el nombre completo cuando presenta una abreviatura en medio
+
+    contadorArt=0
+    nombresPorArticulo = []
+    for articulo in texto:
+        nombresArticuloX = []
+
+        palabras = articulo.split()
+
+        nombreCompleto=False
+        constructorNombre= ""
+        nroNombresCostruc = 0
+        nroPalabra=1
+        for palabra in palabras:
+            #evita no reconocer una entidad por tener puntuacion
+            if palabra.__contains__("."):
+                palabra = palabra.replace(".","")
+                nombreCompleto=True
+            if palabra.__contains__(","):
+                palabra = palabra.replace(",","")
+                nombreCompleto=True
+
+            # La entidad continua hasta que se encuentra con una noEntidad
+            esNombre=False
+            for nombre in entidadesConocidas:
+                if palabra == nombre:
+                    esNombre =True
+                    constructorNombre = constructorNombre+" "+palabra
+                    nroNombresCostruc = nroNombresCostruc+1
+                    break
+            if not esNombre:
+                nombreCompleto=True
+            if nombreCompleto:
+                if nroNombresCostruc <> 0:
+                    if nroNombresCostruc > 1:       #filtra por un nro minimo de entidades contiguas
+                        nombresArticuloX.append(constructorNombre)
+                        nombresArticuloX.append(nroPalabra)
+                    constructorNombre = ""
+                    nroNombresCostruc=0
+                nombreCompleto=False
+            nroPalabra= nroPalabra+1
+        nombresPorArticulo.append(nombresArticuloX)
+        contadorArt =contadorArt+1
+        if contadorArt ==5:
+            break
+    cont =1
+    for nombreArtX in nombresPorArticulo:
+        print texto[cont-1]
+        print cont, nombreArtX, "\n"*2
+        cont = cont+1
+
+
+def obtenerEntidadesPrincipioMayus(texto, entidadesConocidas):
+    # identifica las entidades en un texto* (texto es un vector de textos) basandose en
+    # una lista de entidades conocidas. Una vez encuentra una entidad, si la siguiente palabra comienza con mayus
+    # entonces tambien es una entidad.
+
+    # limitaciones:
+    # no reconoce el nombre completo cuando presenta una abreviatura en medio
+
+    contadorArt=0
+    nombresPorArticulo = []
+    for articulo in texto:
+        nombresArticuloX = []
+        palabras = articulo.split()
+
+        constructorNombre= ""
+        nroNombresCostruc = 0
+        nroPalabra=1
+
+        estoyEnUnNombre = False
+        iniciaMayus = False
+        for palabra in palabras:
+            palabraPuntuada=False
+            #evita no reconocer una entidad por tener puntuacion
+            if palabra.__contains__("."):
+                palabra = palabra.replace(".","")
+                palabraPuntuada=True
+            if palabra.__contains__(","):
+                palabra = palabra.replace(",","")
+                palabraPuntuada=True
+
+            # La entidad continua hasta que se encuentra con una noEntidad
+            if not estoyEnUnNombre:
+                for nombre in entidadesConocidas:
+                    #palabra = str(palabra)
+                    if palabra == nombre:
+                        estoyEnUnNombre=True
+                        break
+            if estoyEnUnNombre:
+                if palabra[0].isupper():
+                    constructorNombre = constructorNombre+" "+palabra
+                    nroNombresCostruc = nroNombresCostruc+1
+
+
+                if not palabra[0].isupper() or palabraPuntuada:
+                    estoyEnUnNombre = False
+                    if nroNombresCostruc <> 0:    # filtrado: si no tiene entidades no agregue
+                        if nroNombresCostruc > 1: # filtrado: por un nro minimo de entidades contiguas
+                            nombresArticuloX.append(constructorNombre)
+                            nombresArticuloX.append(nroPalabra)
+                        constructorNombre = ""
+                        nroNombresCostruc=0
+            nroPalabra= nroPalabra+1
+        nombresPorArticulo.append(nombresArticuloX)
+        contadorArt =contadorArt+1
+        if contadorArt ==5:                 # para que lea solo los primeros 5 articulos
+            break
+    cont =1
+    for nombresArtX in nombresPorArticulo:
+        print cont, "\n", texto[cont-1]
+        for nombre in nombresArtX:
+            print nombre
+        print "\n"*2
+        cont = cont+1
+
 archivoNombres = "Names.xls"
-nombres=   cargarColumnaEnLista(archivoNombres,0,0,1,3500) 
+nombres=   cargarColumnaEnLista(archivoNombres,0,0,1,3500)
 apellidos= cargarColumnaEnLista(archivoNombres,1,0,1,3500)
-nombresApellidos =nombres+apellidos
-
+listaNombresApellidos =nombres+apellidos
 archivoNoticias = "40Art.txt"
-articulos = cargarcsv(archivoNoticias, "#")
+noticias = cargarcsv(archivoNoticias, "#")
 
-contadorArt=0
-nombresPorArticulo = []
-for articulo in articulos:
-    nombresArticuloX = []
-
-    palabras = articulo.split()
-
-    nombreCompleto=False
-    constructorNombre= ""
-    nroNombresCostruc = 0
-    nroPalabra=1
-    for palabra in palabras:
-        #evita no reconocer una entidad por tener puntuacion
-        if palabra.__contains__("."):
-            palabra = palabra.replace(".","")
-            nombreCompleto=True
-        if palabra.__contains__(","):
-            palabra = palabra.replace(",","")
-            nombreCompleto=True
-
-        # La entidad continua hasta que se encuentra con una noEntidad
-        esNombre=False
-        for nombre in nombresApellidos:
-            if palabra == nombre:
-                esNombre =True
-                constructorNombre = constructorNombre+" "+palabra
-                nroNombresCostruc = nroNombresCostruc+1
-                break
-        if not esNombre:
-            nombreCompleto=True
-        if nombreCompleto:
-            if nroNombresCostruc <> 0:
-                if nroNombresCostruc > 1:       #no cuenta las entidades aisladas
-                    nombresArticuloX.append(constructorNombre)
-                    nombresArticuloX.append(nroPalabra)
-                constructorNombre = ""
-                nroNombresCostruc=0
-            nombreCompleto=False
-        nroPalabra= nroPalabra+1
-    nombresPorArticulo.append(nombresArticuloX)
-    contadorArt =contadorArt+1
-    if contadorArt ==5:
-        break
-cont =1
-for nombreArtX in nombresPorArticulo:
-    print articulos[cont-1]
-    print cont, nombreArtX, "\n"*2
-    cont = cont+1
+#obtenerEntidadesFuerzaBruta(noticias,listaNombresApellidos)
+obtenerEntidadesPrincipioMayus(noticias,listaNombresApellidos)
 
 
+
+#LIMITACIONES EN TODOS:
 
 #quitarle tildes a las palabras. josé no lo reconoce
 #problemas con nombres de mas de dos palabras Juan de Dios
 #problemas con la base de datos de nombres
     # contiene cosas que no son nombres o apellidos: "Gastos varios"
     # La seccion de apellidos tiene nombres y apellidos en una misma linea
-#Implementar: si despues de un nombre la siguiente palabra inicia con mayuscula, es un nombre tambien.
-
-# reconoce organizaciones como apellidos
+# reconoce entidades como apellidos
 
 #Hallazgos:
 # los nombres aislados son utiles para encontrar palabras que no estan en la BD de nombres.

@@ -20,29 +20,22 @@ def ordenarTablaFrecuencias(palabras, cantidad, valor, columna):
     return x
 
 
-articulosCorruptos=["desde", "la"]
-s ="Una de las noticias en la recta final de la campaña ha sido su repunte en las últimas encuestas. ¿Qué hizo para dar ese salto? Yo vengo haciendo un trabajo desde hace más de año y medio basado en el contacto permanente con la ciudadanía para saber cuáles con sus problemas y la visión sobre las dificultades de las regiones. Eso me ".split()
-a = getIndicesPalabrasClavesOR(s,articulosCorruptos)
-print a
-exit()
+mayus = "Palabra"
+minus = "palabra"
 
+if mayus[0].isupper():
+    print mayus, "is upper"
 
-archivoExcel = "clasificacionExpresiones.xls"
-expresionesConflictoInterno =  cargarColumnaEnLista(archivoExcel,0,0,1,0)
-expresionesMetropolitana = cargarColumnaEnLista(archivoExcel,0,1,1,0)
-print expresionesMetropolitana
-#expresionesMetropolitana = ["Hola", "nose", "público", "algo"]
-exp = "uevo venir a Venezuela a querer dar clase de moral y de libertad policial público ' , señalar"
-lista = getOcurrenciasExpresiones(exp,expresionesMetropolitana)
-print lista
-'''categ, cant =getUniqsConFrecuencias(getOcurrenciasExpresiones(exp,expresionesMetropolitana))
-for i in range(len(categ)):
-    print categ[i], cant[i]
-'''
+if mayus[0].islower():
+    print mayus, "is lower"
 
+if minus[0].islower():
+    print minus, "is lower"
 
 
 exit()
+
+
 
 
 style0 = xlwt.easyxf('font: name Times New Roman, colour red, bold on')
