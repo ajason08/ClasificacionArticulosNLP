@@ -69,6 +69,7 @@ def obtenerEntidadesPrincipioMayus(texto, entidadesConocidas, conectoresEntidad)
 
     # limitaciones:
     # no reconoce el nombre completo cuando presenta una abreviatura en medio
+    # Problemas al no finalizar conexion. Ej. Durante la articulo 2
 
     contadorArt=0
     nombresPorArticulo = []
@@ -81,7 +82,8 @@ def obtenerEntidadesPrincipioMayus(texto, entidadesConocidas, conectoresEntidad)
         nroPalabra=1
 
         estoyEnUnNombre = False
-        iniciaMayus = False
+        finalizadaConexion = True
+        palabraConectora=False
         for palabra in palabras:
 
             #evita no reconocer una entidad por tener puntuacion
@@ -94,6 +96,8 @@ def obtenerEntidadesPrincipioMayus(texto, entidadesConocidas, conectoresEntidad)
                 palabraPuntuada=True
 
             # detecta si palabra es una entidad conectora
+            #if palabraConectora and not conectoresEntidad.__contains__(palabra):            #MEJORAR, CODIGO HORRIBLE
+                #finalizadaConexion= True
             palabraConectora=False
             if conectoresEntidad.__contains__(palabra):
                 palabraConectora=True
@@ -110,7 +114,7 @@ def obtenerEntidadesPrincipioMayus(texto, entidadesConocidas, conectoresEntidad)
                     constructorNombre = constructorNombre+" "+palabra
                     nroNombresCostruc = nroNombresCostruc+1
 
-                if (not palabra[0].isupper() or palabraPuntuada) and not palabraConectora:
+                if (not palabra[0].isupper() or palabraPuntuada) and not palabraConectora: #and finalizadaConexion:
                     estoyEnUnNombre = False
                     if nroNombresCostruc <> 0:    # filtrado: si no tiene entidades no agregue
                         if nroNombresCostruc > 1: # filtrado: por un nro minimo de entidades contiguas
