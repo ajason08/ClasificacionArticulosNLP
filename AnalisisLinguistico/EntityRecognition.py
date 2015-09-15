@@ -60,10 +60,12 @@ def obtenerEntidadesFuerzaBruta(texto, entidadesConocidas):
         cont = cont+1
 
 
-def obtenerEntidadesPrincipioMayus(texto, entidadesConocidas):
+def obtenerEntidadesPrincipioMayus(texto, entidadesConocidas, conectoresEntidad):
     # identifica las entidades en un texto* (texto es un vector de textos) basandose en
     # una lista de entidades conocidas. Una vez encuentra una entidad, si la siguiente palabra comienza con mayus
     # entonces tambien es una entidad.
+    # Posee tambien la posibilidad de agregar palabras conectoras, esto permite que por ejemplo
+    # se reconozca "Juana de la rosa" como entidad si "de" y "la" son conectoresEntidad
 
     # limitaciones:
     # no reconoce el nombre completo cuando presenta una abreviatura en medio
@@ -81,14 +83,20 @@ def obtenerEntidadesPrincipioMayus(texto, entidadesConocidas):
         estoyEnUnNombre = False
         iniciaMayus = False
         for palabra in palabras:
-            palabraPuntuada=False
+
             #evita no reconocer una entidad por tener puntuacion
+            palabraPuntuada=False
             if palabra.__contains__("."):
                 palabra = palabra.replace(".","")
                 palabraPuntuada=True
             if palabra.__contains__(","):
                 palabra = palabra.replace(",","")
                 palabraPuntuada=True
+
+            # detecta si palabra es una entidad conectora
+            palabraConectora=False
+            if conectoresEntidad.__contains__(palabra):
+                palabraConectora=True
 
             # La entidad continua hasta que se encuentra con una noEntidad
             if not estoyEnUnNombre:
@@ -98,12 +106,11 @@ def obtenerEntidadesPrincipioMayus(texto, entidadesConocidas):
                         estoyEnUnNombre=True
                         break
             if estoyEnUnNombre:
-                if palabra[0].isupper():
+                if palabra[0].isupper() or palabraConectora:
                     constructorNombre = constructorNombre+" "+palabra
                     nroNombresCostruc = nroNombresCostruc+1
 
-
-                if not palabra[0].isupper() or palabraPuntuada:
+                if (not palabra[0].isupper() or palabraPuntuada) and not palabraConectora:
                     estoyEnUnNombre = False
                     if nroNombresCostruc <> 0:    # filtrado: si no tiene entidades no agregue
                         if nroNombresCostruc > 1: # filtrado: por un nro minimo de entidades contiguas
@@ -116,6 +123,8 @@ def obtenerEntidadesPrincipioMayus(texto, entidadesConocidas):
         contadorArt =contadorArt+1
         if contadorArt ==5:                 # para que lea solo los primeros 5 articulos
             break
+
+    #Muestro los resultados.
     cont =1
     for nombresArtX in nombresPorArticulo:
         print cont, "\n", texto[cont-1]
@@ -128,22 +137,26 @@ archivoNombres = "Names.xls"
 nombres=   cargarColumnaEnLista(archivoNombres,0,0,1,3500)
 apellidos= cargarColumnaEnLista(archivoNombres,1,0,1,3500)
 listaNombresApellidos =nombres+apellidos
-archivoNoticias = "40Art.txt"
+archivoNoticias = "39Art.txt"
 noticias = cargarcsv(archivoNoticias, "#")
 
+conectoresNombres = "de,del,los,la,las,y".split(",")
+
 #obtenerEntidadesFuerzaBruta(noticias,listaNombresApellidos)
-obtenerEntidadesPrincipioMayus(noticias,listaNombresApellidos)
+obtenerEntidadesPrincipioMayus(noticias,listaNombresApellidos,conectoresNombres)
 
 
 
 #LIMITACIONES EN TODOS:
-
 #quitarle tildes a las palabras. josé no lo reconoce
-#problemas con nombres de mas de dos palabras Juan de Dios
+
 #problemas con la base de datos de nombres
     # contiene cosas que no son nombres o apellidos: "Gastos varios"
     # La seccion de apellidos tiene nombres y apellidos en una misma linea
+#problemas con la base de datos de noticias
+    # luego de una coma no ponene espacio luego, en Vaupés,Fabio Arango Torres, solo reconoce, Arango Torres
 # reconoce entidades como apellidos
+
 
 #Hallazgos:
 # los nombres aislados son utiles para encontrar palabras que no estan en la BD de nombres.

@@ -20,17 +20,13 @@ def ordenarTablaFrecuencias(palabras, cantidad, valor, columna):
     return x
 
 
-mayus = "Palabra"
-minus = "palabra"
+conectoresNombres = "de,del,los,la,las,y".split(",")
+print conectoresNombres
 
-if mayus[0].isupper():
-    print mayus, "is upper"
-
-if mayus[0].islower():
-    print mayus, "is lower"
-
-if minus[0].islower():
-    print minus, "is lower"
+if conectoresNombres.__contains__("la"):
+    print "si esta"
+else:
+    print "no esta"
 
 
 exit()
