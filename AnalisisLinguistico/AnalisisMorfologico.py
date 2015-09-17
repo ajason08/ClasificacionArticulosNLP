@@ -249,6 +249,9 @@ def palabrasXlemas(buscado, lemas, palabras):
 def vector2paragraph(vector):
     return " ".join(vector)
 
+def vector2paragraphSeparador(vector, separador=" "):
+    return separador.join(vector)
+
 def modificarTaggedTNT(terminosAgregar, categoriasAgregar, lemasAgregar, terminos, categorias, lemas):
     # agrega categorias y lemas personalizados a una lista de los mismos previamente definida,
     # los terminos no son retornados puesto que estos no cambian

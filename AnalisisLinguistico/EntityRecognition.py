@@ -60,7 +60,7 @@ def obtenerEntidadesFuerzaBruta(texto, entidadesConocidas):
         cont = cont+1
 
 
-def obtenerEntidadesPrincipioMayus(texto, entidadesConocidas, conectoresEntidad):
+def getEntidadesMayusConConecteres(texto, entidadesConocidas, conectoresEntidad):
     # identifica las entidades en un texto* (texto es un vector de textos) basandose en
     # una lista de entidades conocidas. Una vez encuentra una entidad, si la siguiente palabra comienza con mayus
     # entonces tambien es una entidad.
@@ -69,7 +69,7 @@ def obtenerEntidadesPrincipioMayus(texto, entidadesConocidas, conectoresEntidad)
 
     # limitaciones:
     # no reconoce el nombre completo cuando presenta una abreviatura en medio
-    # Problemas al no finalizar conexion. Ej. Durante la articulo 2
+    # Problemas al no finalizar conexion. Ej. "Durante la" (porque durante es un apellido) articulo 2
 
     contadorArt=0
     nombresPorArticulo = []
@@ -137,6 +137,90 @@ def obtenerEntidadesPrincipioMayus(texto, entidadesConocidas, conectoresEntidad)
         print "\n"*2
         cont = cont+1
 
+def getEntidadesMayus(texto, entidadesConocidas, conectoresEntidad):
+    # identifica las entidades en un texto* (texto es un vector de textos) basandose en
+    # una lista de entidades conocidas. Una vez encuentra una entidad, si la siguiente palabra comienza con mayus
+    # entonces tambien es una entidad.
+    # Posee tambien la posibilidad de agregar palabras conectoras, esto permite que por ejemplo
+    # se reconozca "Juana de la rosa" como entidad si "de" y "la" son conectoresEntidad
+
+    # limitaciones:
+    # no reconoce el nombre completo cuando presenta una abreviatura en medio
+    # Problemas al no finalizar conexion. Ej. "Durante la" (porque durante es un apellido) articulo 2
+    marcaNegritaI = "<br>"
+    marcaNegritaF = "</br>"
+    marcaNombres  = "#"
+
+    contadorArt=0
+    nombresPorArticulo = []
+    articulosMarcados = []
+    for articulo in texto:
+        articulosMarcados.append("")
+        nombresArticuloX = []
+        palabras = articulo.split()
+
+        constructorNombre= ""
+        nroNombresCostruc = 0
+        nroPalabra=1
+
+        estoyEnUnNombre = False
+        for palabra in palabras:
+            estabaEnUnNombre = False
+            #evita no reconocer una entidad por tener puntuacion
+            palabraPuntuada=False
+            if palabra.__contains__("."):
+                palabra = palabra.replace(".","")
+                palabraPuntuada=True
+            if palabra.__contains__(","):
+                palabra = palabra.replace(",","")
+                palabraPuntuada=True
+
+            # detecta si palabra es una entidad conectora
+            palabraConectora=False
+            if conectoresEntidad.__contains__(palabra):
+                palabraConectora=True
+
+            # La entidad continua hasta que se encuentra con una noEntidad
+            if not estoyEnUnNombre:
+                for nombre in entidadesConocidas:
+                    #palabra = str(palabra)
+                    if palabra == nombre:
+                        estoyEnUnNombre=True
+                        break
+            if estoyEnUnNombre:
+                if palabra[0].isupper() or palabraConectora:
+                    constructorNombre = constructorNombre+" "+palabra
+                    nroNombresCostruc = nroNombresCostruc+1
+
+                # detecta si acabo la entidad
+                if (not palabra[0].isupper() or palabraPuntuada) and not palabraConectora: #and finalizadaConexion:
+                    estoyEnUnNombre = False
+                    if nroNombresCostruc <> 0:    # filtrado: si no tiene entidades no agregue
+                        if nroNombresCostruc > 1: # filtrado: por un nro minimo de entidades contiguas, Agrega entidad
+                            nombresArticuloX.append(constructorNombre)
+                            entidad = marcaNegritaI+constructorNombre+" "+marcaNegritaF
+                            articulosMarcados[contadorArt] += entidad+" "
+                            #ArticulosMarcados[contadorArt] = ArticulosMarcados[contadorArt]+palabra
+                        constructorNombre = ""
+                        nroNombresCostruc=0
+            else:
+                articulosMarcados[contadorArt] += palabra+" "
+        nombresPorArticulo.append(nombresArticuloX)
+        contadorArt =contadorArt+1
+        if contadorArt ==5:                 # para que lea solo los primeros 5 articulos
+            break
+    #return articulosMarcados, nombresPorArticulo
+
+    #Muestro los resultados.
+    for cont in range(len(nombresPorArticulo)):
+        #print cont+1, "\n", texto[cont], \
+        print "\n"*2, "CON MARCAS", "\n"*2, articulosMarcados[cont], "\n"
+        nombresArtX = nombresPorArticulo[cont]
+        print marcaNombres.join(nombresArtX)
+
+
+#Main
+
 archivoNombres = "Names.xls"
 nombres=   cargarColumnaEnLista(archivoNombres,0,0,1,3500)
 apellidos= cargarColumnaEnLista(archivoNombres,1,0,1,3500)
@@ -147,19 +231,24 @@ noticias = cargarcsv(archivoNoticias, "#")
 conectoresNombres = "de,del,los,la,las,y".split(",")
 
 #obtenerEntidadesFuerzaBruta(noticias,listaNombresApellidos)
-obtenerEntidadesPrincipioMayus(noticias,listaNombresApellidos,conectoresNombres)
+getEntidadesMayus(noticias,listaNombresApellidos,conectoresNombres)
 
 
 
-#LIMITACIONES EN TODOS:
-#quitarle tildes a las palabras. josé no lo reconoce
+# Dataframe pandas en pycharm
+# Arreglar el metodo de conectores. Conexion final.
+
+
 
 #problemas con la base de datos de nombres
     # contiene cosas que no son nombres o apellidos: "Gastos varios"
     # La seccion de apellidos tiene nombres y apellidos en una misma linea
+    # añadir nombres con tildes. josé no lo reconoce
 #problemas con la base de datos de noticias
     # luego de una coma no ponene espacio luego, en Vaupés,Fabio Arango Torres, solo reconoce, Arango Torres
-# reconoce entidades como apellidos
+
+#Problemas sin solución
+# reconoce entidades que no son nombres o apellidos.
 
 
 #Hallazgos:
