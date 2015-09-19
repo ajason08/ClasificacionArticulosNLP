@@ -147,13 +147,16 @@ def getEntidadesMayus(texto, entidadesConocidas, conectoresEntidad):
     # limitaciones:
     # no reconoce el nombre completo cuando presenta una abreviatura en medio
     # Problemas al no finalizar conexion. Ej. "Durante la" (porque durante es un apellido) articulo 2
-    marcaNegritaI = "<br>"
-    marcaNegritaF = "</br>"
+    # el texto marcado sale sin puntuacion
+    marcaNegritaI = "<b>"
+    marcaNegritaF = "</b>"
     marcaNombres  = "#"
 
     contadorArt=0
     nombresPorArticulo = []
     articulosMarcados = []
+
+
     for articulo in texto:
         articulosMarcados.append("")
         nombresArticuloX = []
@@ -161,24 +164,23 @@ def getEntidadesMayus(texto, entidadesConocidas, conectoresEntidad):
 
         constructorNombre= ""
         nroNombresCostruc = 0
-        nroPalabra=1
-
         estoyEnUnNombre = False
+        esperandoCierreConexion=False
+        palabraConectora=False
         for palabra in palabras:
-            estabaEnUnNombre = False
             #evita no reconocer una entidad por tener puntuacion
             palabraPuntuada=False
+            puntuacionSalvada= ""
             if palabra.__contains__("."):
                 palabra = palabra.replace(".","")
                 palabraPuntuada=True
+                puntuacionSalvada= "."
             if palabra.__contains__(","):
                 palabra = palabra.replace(",","")
                 palabraPuntuada=True
+                puntuacionSalvada= ","
 
-            # detecta si palabra es una entidad conectora
-            palabraConectora=False
-            if conectoresEntidad.__contains__(palabra):
-                palabraConectora=True
+
 
             # La entidad continua hasta que se encuentra con una noEntidad
             if not estoyEnUnNombre:
@@ -188,32 +190,41 @@ def getEntidadesMayus(texto, entidadesConocidas, conectoresEntidad):
                         estoyEnUnNombre=True
                         break
             if estoyEnUnNombre:
+                # la palabra anterior era conectora pero esta ya no lo es y comienza con mayus
+                if palabraConectora and not conectoresEntidad.__contains__(palabra) and palabra[0].isupper():
+                    esperandoCierreConexion=False
+                palabraConectora =conectoresEntidad.__contains__(palabra)
+                if palabraConectora:
+                    esperandoCierreConexion=True
                 if palabra[0].isupper() or palabraConectora:
                     constructorNombre = constructorNombre+" "+palabra
                     nroNombresCostruc = nroNombresCostruc+1
-
-                # detecta si acabo la entidad
-                if (not palabra[0].isupper() or palabraPuntuada) and not palabraConectora: #and finalizadaConexion:
+                entidadFinalizada = (not palabra[0].isupper() and not palabraConectora)or palabraPuntuada
+                if entidadFinalizada:
                     estoyEnUnNombre = False
-                    if nroNombresCostruc <> 0:    # filtrado: si no tiene entidades no agregue
-                        if nroNombresCostruc > 1: # filtrado: por un nro minimo de entidades contiguas, Agrega entidad
+                    if nroNombresCostruc <> 0:    # filtrado: si no tiene entidades no agregue # SE PUEDE QUITAR ESTA LINEA?
+                        #if esperandoCierreConexion
+                        # filtrado: si nro minimo de entidades contiguas, y finalizo conexxion --> Agrega entidad
+                        if nroNombresCostruc > 1 and not esperandoCierreConexion:
                             nombresArticuloX.append(constructorNombre)
                             entidad = marcaNegritaI+constructorNombre+" "+marcaNegritaF
                             articulosMarcados[contadorArt] += entidad+" "
-                            #ArticulosMarcados[contadorArt] = ArticulosMarcados[contadorArt]+palabra
+                        else:
+                            articulosMarcados[contadorArt] += constructorNombre+" "+palabra+" " #sin marcas, no es entidad
                         constructorNombre = ""
                         nroNombresCostruc=0
+                    esperandoCierreConexion=False
             else:
                 articulosMarcados[contadorArt] += palabra+" "
         nombresPorArticulo.append(nombresArticuloX)
         contadorArt =contadorArt+1
-        if contadorArt ==5:                 # para que lea solo los primeros 5 articulos
+        if contadorArt ==12:                 # para que lea solo los primeros 5 articulos
             break
     #return articulosMarcados, nombresPorArticulo
 
     #Muestro los resultados.
     for cont in range(len(nombresPorArticulo)):
-        #print cont+1, "\n", texto[cont], \
+        #print cont+1, "\n", texto[cont]
         print "\n"*2, "CON MARCAS", "\n"*2, articulosMarcados[cont], "\n"
         nombresArtX = nombresPorArticulo[cont]
         print marcaNombres.join(nombresArtX)
@@ -228,7 +239,8 @@ listaNombresApellidos =nombres+apellidos
 archivoNoticias = "39Art.txt"
 noticias = cargarcsv(archivoNoticias, "#")
 
-conectoresNombres = "de,del,los,la,las,y".split(",")
+conectoresNombres = "de,del,los,la,las".split(",")
+puntacion = ".#,#;".split("#")
 
 #obtenerEntidadesFuerzaBruta(noticias,listaNombresApellidos)
 getEntidadesMayus(noticias,listaNombresApellidos,conectoresNombres)
@@ -244,9 +256,13 @@ getEntidadesMayus(noticias,listaNombresApellidos,conectoresNombres)
     # contiene cosas que no son nombres o apellidos: "Gastos varios"
     # La seccion de apellidos tiene nombres y apellidos en una misma linea
     # añadir nombres con tildes. josé no lo reconoce
+    # Mejora por identificacion de causantes falsos positivos
+        # se puede tener una base de entidades con alta probabilidad de no ser apellidos o nombres,
+        # ej, Juez, Distrito, Medio, Florida. Si una entidad compuesta presenta muchoss de estos se descarta
+
 #problemas con la base de datos de noticias
     # luego de una coma no ponene espacio luego, en Vaupés,Fabio Arango Torres, solo reconoce, Arango Torres
-
+    # todas las palabras conectoras deben ser pasadas a minuscula. o agregar variantes con mayus a lista conectoras.
 #Problemas sin solución
 # reconoce entidades que no son nombres o apellidos.
 
