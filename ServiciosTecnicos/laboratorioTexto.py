@@ -19,6 +19,13 @@ def ordenarTablaFrecuencias(palabras, cantidad, valor, columna):
     x = sorted(matriz, key=itemgetter(columna))
     return x
 
+palabra = "murio"
+a = "Pedro Luis  murio"
+if a.__contains__(palabra):
+    print "la contiene"
+else:
+    print "no contiene"
+
 
 conectoresNombres = "de,del,los,la,las,y".split(",")
 print conectoresNombres

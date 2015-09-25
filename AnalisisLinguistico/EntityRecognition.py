@@ -59,111 +59,40 @@ def obtenerEntidadesFuerzaBruta(texto, entidadesConocidas):
         print cont, nombreArtX, "\n"*2
         cont = cont+1
 
+def getEntidadesMayus(texto, entidadesConocidas, nroMinimoPalabrasEnEntidad=0):
+    # identifica las entidades en un texto* (texto es un vector de textos) basandose en una lista de entidades conocidas.
+    # Entidad: el principio mayus es aquel que define una Entidad como aquel grupo de palabras cuya palaba inicial
+    # se encuentra presente en la lista de entidadesConocidas y las demas comienza con mayuscula o son entidadesConectoras.
+    #  Ej. Maria de la Rosa, Juan C Diaz, Juan C. Diaz, Armando de Mesa.
+    # No son entidades aquellos grupos de palabras que no cierren conexion. Ej. Maria de la, Armando de mesa
 
-def getEntidadesMayusConConecteres(texto, entidadesConocidas, conectoresEntidad):
-    # identifica las entidades en un texto* (texto es un vector de textos) basandose en
-    # una lista de entidades conocidas. Una vez encuentra una entidad, si la siguiente palabra comienza con mayus
-    # entonces tambien es una entidad.
-    # Posee tambien la posibilidad de agregar palabras conectoras, esto permite que por ejemplo
-    # se reconozca "Juana de la rosa" como entidad si "de" y "la" son conectoresEntidad
+    # Entrada:
+    # texto: contiene el conjunto de textos a analizar, debe ser un vector.
+    # entidadesConocidas: Lista de entidades conocidas
+    # nroMinimoPalabrasEnEntidad: Es el numero minimo de palabras que debe tener una entidad Ej. Maria de la rosa tiene 4
 
-    # limitaciones:
-    # no reconoce el nombre completo cuando presenta una abreviatura en medio
-    # Problemas al no finalizar conexion. Ej. "Durante la" (porque durante es un apellido) articulo 2
-
-    contadorArt=0
-    nombresPorArticulo = []
-    for articulo in texto:
-        nombresArticuloX = []
-        palabras = articulo.split()
-
-        constructorNombre= ""
-        nroNombresCostruc = 0
-        nroPalabra=1
-
-        estoyEnUnNombre = False
-        finalizadaConexion = True
-        palabraConectora=False
-        for palabra in palabras:
-
-            #evita no reconocer una entidad por tener puntuacion
-            palabraPuntuada=False
-            if palabra.__contains__("."):
-                palabra = palabra.replace(".","")
-                palabraPuntuada=True
-            if palabra.__contains__(","):
-                palabra = palabra.replace(",","")
-                palabraPuntuada=True
-
-            # detecta si palabra es una entidad conectora
-            #if palabraConectora and not conectoresEntidad.__contains__(palabra):            #MEJORAR, CODIGO HORRIBLE
-                #finalizadaConexion= True
-            palabraConectora=False
-            if conectoresEntidad.__contains__(palabra):
-                palabraConectora=True
-
-            # La entidad continua hasta que se encuentra con una noEntidad
-            if not estoyEnUnNombre:
-                for nombre in entidadesConocidas:
-                    #palabra = str(palabra)
-                    if palabra == nombre:
-                        estoyEnUnNombre=True
-                        break
-            if estoyEnUnNombre:
-                if palabra[0].isupper() or palabraConectora:
-                    constructorNombre = constructorNombre+" "+palabra
-                    nroNombresCostruc = nroNombresCostruc+1
-
-                if (not palabra[0].isupper() or palabraPuntuada) and not palabraConectora: #and finalizadaConexion:
-                    estoyEnUnNombre = False
-                    if nroNombresCostruc <> 0:    # filtrado: si no tiene entidades no agregue
-                        if nroNombresCostruc > 1: # filtrado: por un nro minimo de entidades contiguas
-                            nombresArticuloX.append(constructorNombre)
-                            nombresArticuloX.append(nroPalabra)
-                        constructorNombre = ""
-                        nroNombresCostruc=0
-            nroPalabra= nroPalabra+1
-        nombresPorArticulo.append(nombresArticuloX)
-        contadorArt =contadorArt+1
-        if contadorArt ==5:                 # para que lea solo los primeros 5 articulos
-            break
-
-    #Muestro los resultados.
-    cont =1
-    for nombresArtX in nombresPorArticulo:
-        print cont, "\n", texto[cont-1]
-        for nombre in nombresArtX:
-            print nombre
-        print "\n"*2
-        cont = cont+1
-
-def getEntidadesMayus(texto, entidadesConocidas, conectoresEntidad):
-    # identifica las entidades en un texto* (texto es un vector de textos) basandose en
-    # una lista de entidades conocidas. Una vez encuentra una entidad, si la siguiente palabra comienza con mayus
-    # entonces tambien es una entidad.
-    # Posee tambien la posibilidad de agregar palabras conectoras, esto permite que por ejemplo
-    # se reconozca "Juana de la rosa" como entidad si "de" y "la" son conectoresEntidad
-
-    # limitaciones:
-    # no reconoce el nombre completo cuando presenta una abreviatura en medio
-    # Problemas al no finalizar conexion. Ej. "Durante la" (porque durante es un apellido) articulo 2
-    # el texto marcado sale sin puntuacion
+    # Salida:
+    # textosMarcado: es un vector con los textos de entrada pero con las marcas que resaltan las entidades
+    # entidadesPorTexto: es un vector con la lista de entidades encontradas en cada texto
     marcaNegritaI = "<b>"
     marcaNegritaF = "</b>"
-    marcaNombres  = "#"
+    marcaEntidad  = "#"
+
+    conectoresEntidad = "de,del,los,la,las".split(",")
+    puntacionSeparadora = ".#,#;".split("#")
 
     contadorArt=0
     nombresPorArticulo = []
-    articulosMarcados = []
+    textosMarcados = []
 
 
     for articulo in texto:
-        articulosMarcados.append("")
+        textosMarcados.append("")
         nombresArticuloX = []
         palabras = articulo.split()
 
-        constructorNombre= ""
-        nroNombresCostruc = 0
+        constructorEntidad= ""
+        nroPalabrasEntidad = 0
         estoyEnUnNombre = False
         esperandoCierreConexion=False
         palabraConectora=False
@@ -171,63 +100,101 @@ def getEntidadesMayus(texto, entidadesConocidas, conectoresEntidad):
             #evita no reconocer una entidad por tener puntuacion
             palabraPuntuada=False
             puntuacionSalvada= ""
-            if palabra.__contains__("."):
-                palabra = palabra.replace(".","")
-                palabraPuntuada=True
-                puntuacionSalvada= "."
-            if palabra.__contains__(","):
-                palabra = palabra.replace(",","")
-                palabraPuntuada=True
-                puntuacionSalvada= ","
+            for puntuacion in puntacionSeparadora:
+                if palabra.__contains__(puntuacion):
+                    #la abreviatura de nombre suele ser la inicial y el punto. Ej. Juan C. Restrepo
+                    if len(palabra)>2:
+                        palabra = palabra.replace(puntuacion,"")
+                        palabraPuntuada=True
+                        puntuacionSalvada= puntuacion+" "
+                    break
 
-
-
-            # La entidad continua hasta que se encuentra con una noEntidad
+            #Busqueda de la proxima entidad, la cual comienza una palabra presente en la lista de entidades
             if not estoyEnUnNombre:
                 for nombre in entidadesConocidas:
                     #palabra = str(palabra)
                     if palabra == nombre:
                         estoyEnUnNombre=True
                         break
+            # La entidad se construye mientras estoy en un nombre
             if estoyEnUnNombre:
-                # la palabra anterior era conectora pero esta ya no lo es y comienza con mayus
+                # Controlo cierre de conexion
                 if palabraConectora and not conectoresEntidad.__contains__(palabra) and palabra[0].isupper():
+                    # la palabra anterior era conectora pero esta ya no lo es y comienza con mayus
                     esperandoCierreConexion=False
                 palabraConectora =conectoresEntidad.__contains__(palabra)
                 if palabraConectora:
                     esperandoCierreConexion=True
+
                 if palabra[0].isupper() or palabraConectora:
-                    constructorNombre = constructorNombre+" "+palabra
-                    nroNombresCostruc = nroNombresCostruc+1
-                entidadFinalizada = (not palabra[0].isupper() and not palabraConectora)or palabraPuntuada
+                    constructorEntidad = constructorEntidad+" "+palabra
+                    nroPalabrasEntidad = nroPalabrasEntidad+1
+                entidadFinalizada = palabraPuntuada or (not palabra[0].isupper() and not palabraConectora)
                 if entidadFinalizada:
                     estoyEnUnNombre = False
-                    if nroNombresCostruc <> 0:    # filtrado: si no tiene entidades no agregue # SE PUEDE QUITAR ESTA LINEA?
-                        #if esperandoCierreConexion
+                    if nroPalabrasEntidad <> 0:    # filtrado: si no tiene entidades no agregue # SE PUEDE QUITAR ESTA LINEA?
                         # filtrado: si nro minimo de entidades contiguas, y finalizo conexxion --> Agrega entidad
-                        if nroNombresCostruc > 1 and not esperandoCierreConexion:
-                            nombresArticuloX.append(constructorNombre)
-                            entidad = marcaNegritaI+constructorNombre+" "+marcaNegritaF
-                            articulosMarcados[contadorArt] += entidad+" "
-                        else:
-                            articulosMarcados[contadorArt] += constructorNombre+" "+palabra+" " #sin marcas, no es entidad
-                        constructorNombre = ""
-                        nroNombresCostruc=0
+                        if nroPalabrasEntidad > nroMinimoPalabrasEnEntidad and not esperandoCierreConexion:
+                            nombresArticuloX.append(constructorEntidad)
+                            entidad = marcaNegritaI+constructorEntidad+" "+marcaNegritaF
+                            textosMarcados[contadorArt] += entidad+" "
+                        else:#sin marcas, no es entidad
+                            textosMarcados[contadorArt] += constructorEntidad+" "
+                        # la ultima palabra (la actual) pudo no haberse tenido en cuenta para la construccionEntidad
+                        if not constructorEntidad.__contains__(palabra):
+                            textosMarcados[contadorArt] += palabra+" "
+                        constructorEntidad = ""
+                        nroPalabrasEntidad=0
                     esperandoCierreConexion=False
-            else:
-                articulosMarcados[contadorArt] += palabra+" "
+
+            else:#Agregar palabra normal al textoMarcado
+                textosMarcados[contadorArt] += palabra+" "
+            textosMarcados[contadorArt] += puntuacionSalvada
         nombresPorArticulo.append(nombresArticuloX)
         contadorArt =contadorArt+1
-        if contadorArt ==12:                 # para que lea solo los primeros 5 articulos
-            break
-    #return articulosMarcados, nombresPorArticulo
 
+
+        if contadorArt ==2:                 # para que lea solo los primeros 5 articulos
+            break
     #Muestro los resultados.
+    entidadesPorTexto = []
     for cont in range(len(nombresPorArticulo)):
-        #print cont+1, "\n", texto[cont]
-        print "\n"*2, "CON MARCAS", "\n"*2, articulosMarcados[cont], "\n"
+        print cont+1, "\n"
+        print texto[cont]
+        print "\n"*2, "CON MARCAS", "\n"*2, textosMarcados[cont], "\n"
         nombresArtX = nombresPorArticulo[cont]
-        print marcaNombres.join(nombresArtX)
+        entidadesPorTexto.append(marcaEntidad.join(nombresArtX))
+        print marcaEntidad.join(nombresArtX)
+    #return textosMarcados, entidadesPorTexto
+
+def getEntidadesSinFalsosPositivos(entidadesResueltas, entidadesSospechosas, porcentajeDeteccion):
+# Este metodo se usa para pulir un poco resultados del metodo getEntidadesMayus.
+# Si una entidadX se compone en mas de un "porcentajeDeteccion"% la entidad será marcada como falsoPositivo
+# Entradas:
+    # entidadesResueltas: es el vector de entidades devuelvo por el metodo getEntidadesMayus.
+    # entidadesSospechosas: es una lista de entidades que suelen ser causa de falsos positivos. Ej. Juez, Rios, etc.
+# Salida:
+    # entidadesSinFalsosPositivos
+
+
+
+    entidadesSinFalsosPositivos = []
+    # entidadesResueltas tiene la forma: [entidad1#entidad2#entidad3,  entidad4#entidad5#entidad6...]
+    for entidadesX in entidadesResueltas:
+        entidadX = entidadesX.split("#")
+        # entidadX tiene la forma: Pedro Manuel Garcia
+        sospechosasDetectadas = 0
+        nroEntidades = 0
+        for subEntidad in entidadX:
+            nroEntidades+=1
+            if entidadesSospechosas.__contains__(subEntidad):
+                sospechosasDetectadas+=1
+        if sospechosasDetectadas*100/nroEntidades<porcentajeDeteccion:
+
+
+
+
+
 
 
 #Main
@@ -239,11 +206,10 @@ listaNombresApellidos =nombres+apellidos
 archivoNoticias = "39Art.txt"
 noticias = cargarcsv(archivoNoticias, "#")
 
-conectoresNombres = "de,del,los,la,las".split(",")
-puntacion = ".#,#;".split("#")
+
 
 #obtenerEntidadesFuerzaBruta(noticias,listaNombresApellidos)
-getEntidadesMayus(noticias,listaNombresApellidos,conectoresNombres)
+getEntidadesMayus(noticias,listaNombresApellidos,1)
 
 
 
