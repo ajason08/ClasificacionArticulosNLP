@@ -170,26 +170,46 @@ def getEntidadesMayus(texto, entidadesConocidas, nroMinimoPalabrasEnEntidad=0):
 def getEntidadesSinFalsosPositivos(entidadesResueltas, entidadesSospechosas, porcentajeDeteccion):
 # Este metodo se usa para pulir un poco resultados del metodo getEntidadesMayus.
 # Si una entidadX se compone en mas de un "porcentajeDeteccion"% la entidad será marcada como falsoPositivo
-# Entradas:
+
+# ENTRADA:
     # entidadesResueltas: es el vector de entidades devuelvo por el metodo getEntidadesMayus.
     # entidadesSospechosas: es una lista de entidades que suelen ser causa de falsos positivos. Ej. Juez, Rios, etc.
-# Salida:
+        # esta lista deberia incluir tambien terminos los cuales se sabe que no son entidades de nuestro dominio.
+        # Para obtenerlas, un metodo es crear una lista sin repeticion de todas las subentidades de getEntidadesMayus
+        # (Pedro, Juez, Circuito, Bogotá etc) y restarle entidadesConocidas
+# SALIDA:
     # entidadesSinFalsosPositivos
 
+# NOTA
+# Al contrario de lo que pueda pensarse, respecto a getEntidadesFuerzaBruta, getEntidadesMayus+getEntidadesSinFalsosPositivos
+# tiene mayor eficiencia (pues no rreccore todas entidaesConocidas y no evalua cada entidadX en el pulimiento) y
+# eficacia (pues reconoce conectores)
 
 
     entidadesSinFalsosPositivos = []
     # entidadesResueltas tiene la forma: [entidad1#entidad2#entidad3,  entidad4#entidad5#entidad6...]
     for entidadesX in entidadesResueltas:
-        entidadX = entidadesX.split("#")
-        # entidadX tiene la forma: Pedro Manuel Garcia
-        sospechosasDetectadas = 0
-        nroEntidades = 0
-        for subEntidad in entidadX:
-            nroEntidades+=1
-            if entidadesSospechosas.__contains__(subEntidad):
-                sospechosasDetectadas+=1
-        if sospechosasDetectadas*100/nroEntidades<porcentajeDeteccion:
+        entidadesXList = entidadesX.split("#")
+        entidadesXListSinFP = []
+        # entidadesXList tiene la forma: [Juan Manuel Garcia, Segundo Penal Especializado, Pedro Paramo]
+
+
+        entidadesXsinFalsosPositivos = ""
+        for entidadX in entidadesXList:
+            # entidadX tiene la forma: Juan Manuel Garcia
+            sospechosasDetectadas = 0
+            nroEntidades = 0
+            falsoPositivo = False
+            for subEntidad in entidadX:
+                nroEntidades+=1
+                if entidadesSospechosas.__contains__(subEntidad):
+                    sospechosasDetectadas+=1
+                if sospechosasDetectadas*100/nroEntidades>porcentajeDeteccion:
+                    falsoPositivo=True
+                    break
+            if not falsoPositivo:
+                entidadesXListSinFP.append(entidadX)
+                # se espera que contenga al final: [Juan Manuel Garcia, Pedro Paramo]
 
 
 
