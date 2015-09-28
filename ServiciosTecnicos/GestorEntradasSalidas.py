@@ -94,8 +94,8 @@ def cargarColumnaEnLista(excel, hoja, columna, filainicial=0, filaLimite=0):
         nrows = sheet.nrows
         filaLimite = nrows
     lista = []
-    a = ""
-    for i in range(filainicial, filaLimite+1):
+    for i in range(filainicial, filaLimite):
+        #print filaLimite
         try:
             celda = sheet.cell_value(i,columna).__str__()
             if celda == '':                                   # una celda vacia indica que la columna no tiene mas valores

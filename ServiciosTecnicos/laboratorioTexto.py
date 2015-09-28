@@ -19,6 +19,8 @@ def ordenarTablaFrecuencias(palabras, cantidad, valor, columna):
     x = sorted(matriz, key=itemgetter(columna))
     return x
 
+print 1*1.0/3
+
 palabra = "murio"
 a = "Pedro Luis  murio"
 if a.__contains__(palabra):

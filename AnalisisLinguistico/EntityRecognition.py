@@ -56,7 +56,7 @@ def obtenerEntidadesFuerzaBruta(texto, entidadesConocidas):
     cont =1
     for nombreArtX in nombresPorArticulo:
         print texto[cont-1]
-        print cont, nombreArtX, "\n"*2
+        print cont, nombreArtX, "\n"*2, "lol"
         cont = cont+1
 
 def getEntidadesMayus(texto, entidadesConocidas, nroMinimoPalabrasEnEntidad=0):
@@ -154,18 +154,19 @@ def getEntidadesMayus(texto, entidadesConocidas, nroMinimoPalabrasEnEntidad=0):
         contadorArt =contadorArt+1
 
 
-        if contadorArt ==2:                 # para que lea solo los primeros 5 articulos
+        if contadorArt ==37:                 # para que lea solo los primeros n articulos
             break
-    #Muestro los resultados.
+
     entidadesPorTexto = []
+    #Muestro los resultados.
     for cont in range(len(nombresPorArticulo)):
-        print cont+1, "\n"
-        print texto[cont]
-        print "\n"*2, "CON MARCAS", "\n"*2, textosMarcados[cont], "\n"
+        #print cont+1, "\n"
+     #   print texto[cont]
+        #print "\n"*2, "CON MARCAS", "\n"*2, textosMarcados[cont], "\n"
         nombresArtX = nombresPorArticulo[cont]
         entidadesPorTexto.append(marcaEntidad.join(nombresArtX))
-        print marcaEntidad.join(nombresArtX)
-    #return textosMarcados, entidadesPorTexto
+        #print marcaEntidad.join(nombresArtX)
+    return textosMarcados, entidadesPorTexto
 
 def getEntidadesSinFalsosPositivos(entidadesResueltas, entidadesSospechosas, porcentajeDeteccion):
 # Este metodo se usa para pulir un poco resultados del metodo getEntidadesMayus.
@@ -176,7 +177,9 @@ def getEntidadesSinFalsosPositivos(entidadesResueltas, entidadesSospechosas, por
     # entidadesSospechosas: es una lista de entidades que suelen ser causa de falsos positivos. Ej. Juez, Rios, etc.
         # esta lista deberia incluir tambien terminos los cuales se sabe que no son entidades de nuestro dominio.
         # Para obtenerlas, un metodo es crear una lista sin repeticion de todas las subentidades de getEntidadesMayus
-        # (Pedro, Juez, Circuito, Bogotá etc) y restarle entidadesConocidas
+        # (Pedro, Juez, Circuito, Bogotá etc) y restarle entidadesConocidas.
+        # Notese ademas que esta lista resultante puede ser usada para aumentar entidadesConocidas
+    # PorcentajeDeteccion: % de palabras sospechosas en una entidad para ser considerada falso positivo. Ej: 0.5
 # SALIDA:
     # entidadesSinFalsosPositivos
 
@@ -185,51 +188,74 @@ def getEntidadesSinFalsosPositivos(entidadesResueltas, entidadesSospechosas, por
 # tiene mayor eficiencia (pues no rreccore todas entidaesConocidas y no evalua cada entidadX en el pulimiento) y
 # eficacia (pues reconoce conectores)
 
-
+    conectoresEntidad = "de,del,los,la,las".split(",")
     entidadesSinFalsosPositivos = []
     # entidadesResueltas tiene la forma: [entidad1#entidad2#entidad3,  entidad4#entidad5#entidad6...]
     for entidadesX in entidadesResueltas:
-        entidadesXList = entidadesX.split("#")
         entidadesXListSinFP = []
+
         # entidadesXList tiene la forma: [Juan Manuel Garcia, Segundo Penal Especializado, Pedro Paramo]
-
-
-        entidadesXsinFalsosPositivos = ""
+        entidadesXList = entidadesX.split("#")
         for entidadX in entidadesXList:
             # entidadX tiene la forma: Juan Manuel Garcia
+            entidadXList = entidadX.split()
             sospechosasDetectadas = 0
-            nroEntidades = 0
+            nroEntidades = len(entidadXList)
             falsoPositivo = False
-            for subEntidad in entidadX:
-                nroEntidades+=1
+            print "NUEVA ENTIDAD"
+            # entidadXList tiene la forma: [Juan, Manuel, Garcia]
+            for subEntidad in entidadXList:
+                if conectoresEntidad.__contains__(subEntidad):
+                    nroEntidades-=1
+                    continue
                 if entidadesSospechosas.__contains__(subEntidad):
                     sospechosasDetectadas+=1
-                if sospechosasDetectadas*100/nroEntidades>porcentajeDeteccion:
+                    nivelSospecha = sospechosasDetectadas*1.0/nroEntidades
+                    print "   ----ENTIDAD SOSPECHOSA", subEntidad, "NivelSospecha", nivelSospecha
+                nivelSospecha = sospechosasDetectadas*1.0/nroEntidades
+                if nivelSospecha>=porcentajeDeteccion:
                     falsoPositivo=True
+                    print "DECLARADA Falso positivo: ", entidadX
                     break
             if not falsoPositivo:
+                print "DECLARADA valido: ", entidadX
                 entidadesXListSinFP.append(entidadX)
                 # se espera que contenga al final: [Juan Manuel Garcia, Pedro Paramo]
+        entidadesSinFalsosPositivos.append(vector2paragraphSeparador(entidadesXListSinFP, "#"))
 
-
-
-
-
+    #muestro resultados
+    cont =0
+    for cont in range(len(entidadesResueltas)):
+        print "resuelta", entidadesResueltas[cont]
+        print "nueva", entidadesSinFalsosPositivos[cont]
+        print "\n"*2
+    return entidadesSinFalsosPositivos
 
 
 #Main
 
 archivoNombres = "Names.xls"
+archivoNoticias = "39Art.txt"
+archivoNoEntidades = "FalsosPositivos.xls"
+sospechosas = "FalsosPositivos.xls"
+
 nombres=   cargarColumnaEnLista(archivoNombres,0,0,1,3500)
 apellidos= cargarColumnaEnLista(archivoNombres,1,0,1,3500)
 listaNombresApellidos =nombres+apellidos
-archivoNoticias = "39Art.txt"
+
 noticias = cargarcsv(archivoNoticias, "#")
 
-
+#print listaNombresApellidos
 
 #obtenerEntidadesFuerzaBruta(noticias,listaNombresApellidos)
-getEntidadesMayus(noticias,listaNombresApellidos,1)
+textoMarcado, entidadesResueltas = getEntidadesMayus(noticias,listaNombresApellidos,1)
+#print entidadesResueltas
+
+noEntidades = cargarColumnaEnLista(archivoNoEntidades,0,0)
+sospechosas = cargarColumnaEnLista(sospechosas,0,0)
+sospechosas = sospechosas+noEntidades
+
+getEntidadesSinFalsosPositivos(entidadesResueltas,sospechosas,0.5)
 
 
 
@@ -245,7 +271,6 @@ getEntidadesMayus(noticias,listaNombresApellidos,1)
     # Mejora por identificacion de causantes falsos positivos
         # se puede tener una base de entidades con alta probabilidad de no ser apellidos o nombres,
         # ej, Juez, Distrito, Medio, Florida. Si una entidad compuesta presenta muchoss de estos se descarta
-
 #problemas con la base de datos de noticias
     # luego de una coma no ponene espacio luego, en Vaupés,Fabio Arango Torres, solo reconoce, Arango Torres
     # todas las palabras conectoras deben ser pasadas a minuscula. o agregar variantes con mayus a lista conectoras.
