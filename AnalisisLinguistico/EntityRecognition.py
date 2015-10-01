@@ -59,7 +59,7 @@ def obtenerEntidadesFuerzaBruta(texto, entidadesConocidas):
         print cont, nombreArtX, "\n"*2, "lol"
         cont = cont+1
 
-def getEntidadesMayus(texto, entidadesConocidas, nroMinimoPalabrasEnEntidad=0):
+def getEntidadesMayus(texto, entidadesConocidas, nroMinPalabrasEnEntidad=0, nroMaxEntidad=100):
     # identifica las entidades en un texto* (texto es un vector de textos) basandose en una lista de entidades conocidas.
     # Entidad: el principio mayus es aquel que define una Entidad como aquel grupo de palabras cuya palaba inicial
     # se encuentra presente en la lista de entidadesConocidas y las demas comienza con mayuscula o son entidadesConectoras.
@@ -108,6 +108,9 @@ def getEntidadesMayus(texto, entidadesConocidas, nroMinimoPalabrasEnEntidad=0):
                         palabraPuntuada=True
                         puntuacionSalvada= puntuacion+" "
                     break
+            #evita no reconocer una entidad por estar toda en mayuscula o mal escrita en sus mayusculas
+            if len(palabra)>1 and palabra[1].isupper():
+                palabra = palabra.capitalize()
 
             #Busqueda de la proxima entidad, la cual comienza una palabra presente en la lista de entidades
             if not estoyEnUnNombre:
@@ -134,7 +137,7 @@ def getEntidadesMayus(texto, entidadesConocidas, nroMinimoPalabrasEnEntidad=0):
                     estoyEnUnNombre = False
                     if nroPalabrasEntidad <> 0:    # filtrado: si no tiene entidades no agregue # SE PUEDE QUITAR ESTA LINEA?
                         # filtrado: si nro minimo de entidades contiguas, y finalizo conexxion --> Agrega entidad
-                        if nroPalabrasEntidad > nroMinimoPalabrasEnEntidad and not esperandoCierreConexion:
+                        if nroMinPalabrasEnEntidad < nroPalabrasEntidad and nroPalabrasEntidad < nroMaxEntidad and not esperandoCierreConexion:
                             nombresArticuloX.append(constructorEntidad)
                             entidad = marcaNegritaI+constructorEntidad+" "+marcaNegritaF
                             textosMarcados[contadorArt] += entidad+" "
@@ -154,14 +157,14 @@ def getEntidadesMayus(texto, entidadesConocidas, nroMinimoPalabrasEnEntidad=0):
         contadorArt =contadorArt+1
 
 
-        if contadorArt ==37:                 # para que lea solo los primeros n articulos
+        if contadorArt ==4:                 # para que lea solo los primeros n articulos
             break
 
     entidadesPorTexto = []
     #Muestro los resultados.
     for cont in range(len(nombresPorArticulo)):
         #print cont+1, "\n"
-     #   print texto[cont]
+        #print texto[cont]
         #print "\n"*2, "CON MARCAS", "\n"*2, textosMarcados[cont], "\n"
         nombresArtX = nombresPorArticulo[cont]
         entidadesPorTexto.append(marcaEntidad.join(nombresArtX))
@@ -187,6 +190,7 @@ def getEntidadesSinFalsosPositivos(textoMarcado, entidadesResueltas, entidadesSo
 # Al contrario de lo que pueda pensarse, respecto a getEntidadesFuerzaBruta, getEntidadesMayus+getEntidadesSinFalsosPositivos
 # tiene mayor eficiencia (pues no rreccore todas entidaesConocidas y no evalua cada entidadX en el pulimiento) y
 # eficacia (pues reconoce conectores y por su criterio mayus permite detectar entidades faltantes en la BD conocidas)
+
 
 
     conectoresEntidad = "de,del,los,la,las".split(",")
@@ -236,6 +240,7 @@ def getEntidadesSinFalsosPositivos(textoMarcado, entidadesResueltas, entidadesSo
         entidadesSinFalsosPositivos.append(vector2paragraphSeparador(entidadesXListSinFP, "#"))
         listFalsosPositivos.append(vector2paragraphSeparador(falsosPositivosX, "#"))
 
+        # Actualizo el textoMarcado para que no tenga FP
         txtmSinFP = textoMarcado[cont]
         # para el replace, los espacios en marcaNegrita deben ser consistentes con los que se tienen en texto marcado y fp
         for fp in falsosPositivosX:
@@ -254,7 +259,7 @@ def getEntidadesSinFalsosPositivos(textoMarcado, entidadesResueltas, entidadesSo
     return textoMarcadoSinFP, entidadesSinFalsosPositivos
 
 
-#Main
+#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -Main- - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 archivoNombres = "Names.xls"
 archivoNoticias = "39Art.txt"
@@ -276,7 +281,6 @@ textoMarcado, entidadesResueltas = getEntidadesMayus(noticias,listaNombresApelli
 noEntidades = cargarColumnaEnLista(archivoNoEntidades,0,0)
 sospechosas = cargarColumnaEnLista(sospechosas,0,0)
 sospechosas = sospechosas+noEntidades
-
 getEntidadesSinFalsosPositivos(textoMarcado, entidadesResueltas,sospechosas,0.5)
 
 

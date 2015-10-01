@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import xlwt
-
+import string
 from AnalisisLinguistico.AnalisisMorfologico import *
 
 
@@ -19,7 +19,12 @@ def ordenarTablaFrecuencias(palabras, cantidad, valor, columna):
     x = sorted(matriz, key=itemgetter(columna))
     return x
 
+
+
+
 print 1*1.0/3
+
+exit()
 
 palabra = "murio"
 a = "Pedro Luis  murio"

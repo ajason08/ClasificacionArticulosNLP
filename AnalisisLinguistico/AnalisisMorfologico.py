@@ -4,6 +4,7 @@ import re
 import xlrd
 import xlwt
 import prettytable
+import string
 from operator import itemgetter
 import ServiciosTecnicos.GestorEntradasSalidas
 
