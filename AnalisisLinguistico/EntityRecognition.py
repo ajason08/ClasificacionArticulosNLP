@@ -168,7 +168,7 @@ def getEntidadesMayus(texto, entidadesConocidas, nroMinimoPalabrasEnEntidad=0):
         #print marcaEntidad.join(nombresArtX)
     return textosMarcados, entidadesPorTexto
 
-def getEntidadesSinFalsosPositivos(entidadesResueltas, entidadesSospechosas, porcentajeDeteccion):
+def getEntidadesSinFalsosPositivos(textoMarcado, entidadesResueltas, entidadesSospechosas, porcentajeDeteccion):
 # Este metodo se usa para pulir un poco resultados del metodo getEntidadesMayus.
 # Si una entidadX se compone en mas de un "porcentajeDeteccion"% la entidad será marcada como falsoPositivo
 
@@ -186,13 +186,24 @@ def getEntidadesSinFalsosPositivos(entidadesResueltas, entidadesSospechosas, por
 # NOTA
 # Al contrario de lo que pueda pensarse, respecto a getEntidadesFuerzaBruta, getEntidadesMayus+getEntidadesSinFalsosPositivos
 # tiene mayor eficiencia (pues no rreccore todas entidaesConocidas y no evalua cada entidadX en el pulimiento) y
-# eficacia (pues reconoce conectores)
+# eficacia (pues reconoce conectores y por su criterio mayus permite detectar entidades faltantes en la BD conocidas)
+
 
     conectoresEntidad = "de,del,los,la,las".split(",")
     entidadesSinFalsosPositivos = []
+    listFalsosPositivos = []
+
+    textoMarcadoSinFP=[]
+    marcaNegritaI = " <b>"
+    marcaNegritaF = " </b>"
+
+    cont = 0
     # entidadesResueltas tiene la forma: [entidad1#entidad2#entidad3,  entidad4#entidad5#entidad6...]
     for entidadesX in entidadesResueltas:
+        # en cada iteracion crea una entidadesXListSinFP que sera fila de entidadesSinFalsosPositivos
+        # entonces len(entidadesResueltas)==len(entidadesSinFalsosPositivos)== len(listFalsosPositivos). Siempre
         entidadesXListSinFP = []
+        falsosPositivosX = []
 
         # entidadesXList tiene la forma: [Juan Manuel Garcia, Segundo Penal Especializado, Pedro Paramo]
         entidadesXList = entidadesX.split("#")
@@ -215,6 +226,7 @@ def getEntidadesSinFalsosPositivos(entidadesResueltas, entidadesSospechosas, por
                 nivelSospecha = sospechosasDetectadas*1.0/nroEntidades
                 if nivelSospecha>=porcentajeDeteccion:
                     falsoPositivo=True
+                    falsosPositivosX.append(entidadX)
                     print "DECLARADA Falso positivo: ", entidadX
                     break
             if not falsoPositivo:
@@ -222,14 +234,24 @@ def getEntidadesSinFalsosPositivos(entidadesResueltas, entidadesSospechosas, por
                 entidadesXListSinFP.append(entidadX)
                 # se espera que contenga al final: [Juan Manuel Garcia, Pedro Paramo]
         entidadesSinFalsosPositivos.append(vector2paragraphSeparador(entidadesXListSinFP, "#"))
+        listFalsosPositivos.append(vector2paragraphSeparador(falsosPositivosX, "#"))
+
+        txtmSinFP = textoMarcado[cont]
+        # para el replace, los espacios en marcaNegrita deben ser consistentes con los que se tienen en texto marcado y fp
+        for fp in falsosPositivosX:
+            fpm=marcaNegritaI+fp+marcaNegritaF
+            txtmSinFP = txtmSinFP.replace(fpm,fp)
+        cont +=1
+        textoMarcadoSinFP.append(txtmSinFP)
 
     #muestro resultados
     cont =0
-    for cont in range(len(entidadesResueltas)):
-        print "resuelta", entidadesResueltas[cont]
-        print "nueva", entidadesSinFalsosPositivos[cont]
-        print "\n"*2
-    return entidadesSinFalsosPositivos
+    print "-----Resultados"
+    for cont in range(len(textoMarcado)):
+        print "\n"*2,cont,"falsos positivos en texto: ", listFalsosPositivos[cont]
+        print "\n",textoMarcado[cont],"\n"*2,textoMarcadoSinFP[cont]
+
+    return textoMarcadoSinFP, entidadesSinFalsosPositivos
 
 
 #Main
@@ -255,12 +277,7 @@ noEntidades = cargarColumnaEnLista(archivoNoEntidades,0,0)
 sospechosas = cargarColumnaEnLista(sospechosas,0,0)
 sospechosas = sospechosas+noEntidades
 
-getEntidadesSinFalsosPositivos(entidadesResueltas,sospechosas,0.5)
-
-
-
-# Dataframe pandas en pycharm
-# Arreglar el metodo de conectores. Conexion final.
+getEntidadesSinFalsosPositivos(textoMarcado, entidadesResueltas,sospechosas,0.5)
 
 
 
@@ -279,7 +296,7 @@ getEntidadesSinFalsosPositivos(entidadesResueltas,sospechosas,0.5)
 
 
 #Hallazgos:
-# los nombres aislados son utiles para encontrar palabras que no estan en la BD de nombres.
+# los nombres aislados son utiles para encontrar palabras que no estan en la BD de nombres u otra tipo de entidades.
 # Los alias son facilmente encontrados por las comillas.
 
 
