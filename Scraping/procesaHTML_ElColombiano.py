@@ -18,8 +18,8 @@ SOLO ES NECESARIO ESPECIFICAR LA URL Y EL TOPE (PAGINA MAX A LA QUE SE DESEA LLE
 '''
 
 #'''# NIVEL LISTAS: OBTENER TODAS LAS URL DE LAS NOTICIAS
-topeInicio=1
-topePag= 500
+topeInicio=4
+topePag= 30
 
 todasUrls = []
 todasPagUrls = []
@@ -50,6 +50,9 @@ for i in range(topeInicio,topeInicio+topePag+1):
         todasPagUrls.append(i)
 
 
+
+
+
 #''' # NIVEL DE ARTICULO: OBTENER EL PARRAFO DE LA NOTICIA DEL ARTICULO
 
 nombreArchivoUrls = str(topePag)+"Url.txt"
@@ -63,34 +66,95 @@ outputArt.close()
 outputArt = open(nombreArchivo,"a")
 
 terminosInapropiados=["@","&nbsp"] #tiene hiperlinks de twiter o errores en el patron
-patronIn = "<!-- cxenseparse_start -->"
-patronFin = "</p> </div> </article>"
+
+#PATRONES DE EXTRACCION DE INFORMACION
+
+#notese que inInfo es == inicio titulo y finInfo == finArticulo
+pInInf = '<div class="information-noticia"> <h3>'
+pFinInf = "</article>"
+
+pInTit = '<div class="information-noticia"> <h3>'
+pFinTit = '</h3>'
+
+pInTags = '<a class ="categoryListItemLink" href='
+pFinTags= ">"
+
+pInAutorFecha = '<div class="autor"> <h6>'
+pFinAutorFecha = '</h6>'
+
+pInArt = "<!-- cxenseparse_start -->"
+pFinArt = "</article>"
+
 j=1
 cantidadArt=0
 for url in todasUrls:
-    #obtengo articulo
+    # 1. OBTENGO ARTICULO Y METADATOS
     usock = urlopen(url)
     data = usock.read()
     usock.close()
-    indiceIn=data.find(patronIn)
-    indiceFin= data.find(patronFin)
-    articulo=data[indiceIn:indiceFin]
 
-    #determino si el articulo es valido
+    #toda info
+    indiceIn=data.find(pInInf)
+    indiceFin= data.find(pFinInf)
+    info=data[indiceIn:indiceFin]
+
+    # titulo
+    indiceIn=info.find(pInTit)
+    indiceFin= info.find(pFinTit)
+    tituloArt=info[indiceIn:indiceFin]
+
+    # tags
+    tagsArt =  getOcurrenciasExpresion(info,pInTags,pFinTags)
+
+    # autor y fecha
+    indiceIn=info.find(pInAutorFecha)
+    indiceFin= info.find(pFinAutorFecha)
+    autorFechaArt=info[indiceIn:indiceFin]
+
+    # articulo
+    indiceIn=info.find(pInArt)
+    indiceFin= info.find(pFinArt)
+    articulo=info[indiceIn:indiceFin]
+
     print "--------ARTICULO NUEVO ----------", j, "pagina", todasPagUrls[j-1]
     print url
     j=j+1
 
-    # accion inicial de limpieza: cortar si encontro codigo en medio del patron.
+    # 2. LIMPIO ARTICULO Y METADATOS
+
+    # limpio titulo
+    #tituloArt = tituloArt.replace("\n"," ")
+    tituloArt = deleteExpresion(tituloArt,"<",">")
+    tituloArt = tituloArt.strip()
+
+    # nada que limpiar en tags...
+
+    #limpio autor y fecha
+    autorFechaArt = deleteExpresion(autorFechaArt,"<",">")
+    autorFechaArt = autorFechaArt.replace("|", "")
+    autorFechaArt = " ".join(autorFechaArt.split())
+    autorFechaArt = autorFechaArt.split("Publicado el")
+    if len(autorFechaArt)>1:
+        autorArt= autorFechaArt[0]
+        fechaArt = autorFechaArt[1]
+    # aveces el autor no aparece o aparece con otro patron, la fecha siempre
+    else:
+        autorArt = ""
+        fechaArt = autorFechaArt[0]
+
+    # Limpio articulo
+    # cortar si encontro codigo en medio del patron.
     articuloVector = str(articulo).split()
     indiceTerminosInapropiados = getIndicesPalabrasClavesOR(articuloVector,terminosInapropiados)
+
     if indiceTerminosInapropiados <> []:
         print "--RECORTADO-- En este articulo encontro uno de los sgts terminos inapropiados", indiceTerminosInapropiados
         articuloVector = articuloVector[0:min(indiceTerminosInapropiados)]
-
+        articulo = vector2paragraph(articuloVector)
 
     # limpio (whiteSpaces y simbolos) y almaceno el articulo
-    articulo = re.sub('[\t]+' , ' ', articulo).strip()
+
+    articulo = articulo.replace("\n"," ")
     articulo = deleteExpresion(articulo,"<",">")
     articulo = articulo.replace("”"," ' ")
     articulo = articulo.replace("“"," ' ")
@@ -99,9 +163,19 @@ for url in todasUrls:
     articulo = articulo.replace("’"," ' ")
     articulo = articulo.replace("—","")
     articulo = articulo.replace("#","")
-    print articulo
+    articulo = re.sub('[\t]+' , ' ', articulo)
+    articulo = articulo.strip()
 
 
+    # Muestro resultados limpios
+    print "\n Titulo\n", tituloArt,"\n"
+    print "\n tags\n",tagsArt,"\n"
+    print "\n Autor: ",autorArt,"\n", "Fecha: ", fechaArt, "\n"
+    print "\n articulo \n", articulo
+
+
+
+    # 3. ALMACENO EL ARTICULO Y METADATOS
     outputArt.write(articulo+" # ")
     if cantidadArt <>0: #primera iteracion
         outputUrl.write(",")

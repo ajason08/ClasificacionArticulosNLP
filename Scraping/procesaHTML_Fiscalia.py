@@ -111,7 +111,7 @@ for url in todasUrls:
     if indiceTerminosInapropiados <> []:
         print "--RECORTADO-- En este articulo encontro uno de los sgts terminos inapropiados", indiceTerminosInapropiados
         articuloVector = articuloVector[0:min(indiceTerminosInapropiados)]
-
+    #probar meterlo dentro del if
     articulo = vector2paragraph(articuloVector)
 
 

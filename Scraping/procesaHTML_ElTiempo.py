@@ -91,39 +91,39 @@ patronFin2 = '<div class="compartirTop">'
 j=1
 cantidadArt=0
 for url in todasUrls:
-    #obtengo articulo
+    # 1. OBTENER EL ARTICULO
     usock = urlopen(url)
     data = usock.read()
     usock.close()
     indiceIn=data.find(patronIn)
     indiceFin= data.find(patronFin)
     articulo=data[indiceIn:indiceFin]
-
-    #determino si el articulo es valido
-    print "--------ARTICULO NUEVO ----------", j, "pagina", todasPagUrls[j-1]
-    print url
-    j=j+1
-
     # Si el primer patron falla intento con el segundo
     if len(articulo)<2:
         indiceIn=data.find(patronIn2)
         indiceFin= data.find(patronFin2)
         articulo=data[indiceIn:indiceFin]
-        if len(articulo)<2:
-            print "--DESCARTADO-- No se encontro el articulo"
-            continue
 
-    # accion inicial de limpieza: cortar si encontro codigo en medio del patron.
+    print "--------ARTICULO NUEVO ----------", j, "pagina", todasPagUrls[j-1]
+    print url
+    j=j+1
+    if len(articulo)<2:
+        print "--DESCARTADO-- No se encontro el articulo"
+        continue
+
+    # 2. LIMPIAR EL ARTICULO
+    # 2.1 cortar si encontro codigo en medio del patron.
     articuloVector = str(articulo).split()
     indiceTerminosInapropiados = getIndicesPalabrasClavesOR(articuloVector,terminosInapropiados)
     if indiceTerminosInapropiados <> []:
         print "--RECORTADO-- En este articulo encontro uno de los sgts terminos inapropiados", indiceTerminosInapropiados
         articuloVector = articuloVector[0:min(indiceTerminosInapropiados)]
 
+    #probar meterlo dentro del if
     articulo = vector2paragraph(articuloVector)
 
 
-    # limpio (whiteSpaces y simbolos) y almaceno el articulo
+    # 2.2 limpio (whiteSpaces y simbolos)
     articulo = articulo.replace("\n"," ")
     articulo = deleteExpresion(articulo,"<!--","-->")
     articulo = deleteExpresion(articulo,"<",">")
@@ -137,7 +137,7 @@ for url in todasUrls:
 
     articulo = articulo.replace("—","")
     articulo = articulo.replace("#","")
-    #limpio codificacion html
+    # 2.3 limpio codificacion html
     articulo = articulo.replace("&aacute;","á")
     articulo = articulo.replace("&eacute;","é")
     articulo = articulo.replace("&iacute;","í")
@@ -163,7 +163,7 @@ for url in todasUrls:
     articulo = articulo.replace("&ndash;"," - ")
     articulo = articulo.replace("&ordf;"," ")
 
-
+    # 2.3 casos especiales
     articulo = articulo.replace(chr(9),"")      # tabulador normal
     articulo = articulo.replace(chr(10),"")     # tabulador extraño
     articulo = articulo.replace(chr(13),"")     # tabulador extraño 2
@@ -171,7 +171,7 @@ for url in todasUrls:
 
     print articulo
 
-
+    # 3. ALMACENAR EL ARTICULO
     outputArt.write(articulo+" # ")
     if cantidadArt <>0: #primera iteracion
         outputUrl.write(",")
